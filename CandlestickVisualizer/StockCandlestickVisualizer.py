@@ -26,11 +26,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📈 Stock Candlestick Visualizer")
+st.title("Stock Candlestick Visualizer")
 st.markdown('<div class="subtitle">Real-time stock analysis with technical indicators</div>', unsafe_allow_html=True)
 
 # ------------------- Sidebar Inputs ---------------------
-st.sidebar.header("⚙️ Configuration")
+st.sidebar.header("Configuration")
 ticker = st.sidebar.text_input("Enter Stock Ticker", "AAPL", key="ticker_input").upper()
 period = st.sidebar.selectbox("Select Period", ["1mo", "3mo", "6mo", "1y", "5y"], key="period_select")
 interval = st.sidebar.selectbox("Select Interval", ["1d", "1wk", "1mo"], key="interval_select")
@@ -62,11 +62,11 @@ def fetch_stock_data(ticker, period, interval):
         st.error(f"Error fetching data: {type(e).__name__}: {str(e)}")
         return pd.DataFrame()
 
-with st.spinner(f"📊 Fetching data for {ticker}..."):
+with st.spinner(f"Fetching data for {ticker}..."):
     data = fetch_stock_data(ticker, period, interval)
 
 if data.empty:
-    st.error("❌ Invalid ticker symbol or no data available")
+    st.error("Invalid ticker symbol or no data available")
     st.stop()
 
 col1, col2, col3 = st.columns(3)
@@ -135,7 +135,7 @@ if show_markers:
 
     fig.add_trace(go.Scatter(
         x=bearish_days.index,
-        y=bearish_days['Close'], # FIX: Changed 'close' to 'Close'
+        y=bearish_days['Close'], 
         mode='markers',
         marker=dict(symbol='triangle-down', size=6, color='#ef553b'),
         name='Bearish',
@@ -164,7 +164,7 @@ if show_signals:
 
     fig.add_trace(go.Scatter(
         x=sell_signals.index,
-        y=sell_signals['Close'], # FIX: Changed 'close' to 'Close'
+        y=sell_signals['Close'], 
         mode='markers',
         marker=dict(symbol='x', size=15, color='#FF6692'),
         name='Sell Signal',
@@ -211,7 +211,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 # ------------------- Display Data Table ---------------------
 st.divider()
-st.subheader("📊 Data Summary")
+st.subheader("Data Summary")
 display_data = data[['Open', 'High', 'Low', 'Close', 'Volume']].tail(10).copy()
 display_data['Change %'] = ((display_data['Close'] - display_data['Open']) / display_data['Open'] * 100).round(2)
 st.dataframe(display_data.style.format("{:.2f}"), use_container_width=True)
