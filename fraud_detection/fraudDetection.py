@@ -8,7 +8,9 @@ st.set_page_config(page_title="UPI Monitoring System", layout="wide")
 
 st.title("🏦 UPI Transaction Monitoring System")
 
-# ------------- GENERATE UPI DATA ---------------------
+# ------------------------------------------------------
+# GENERATE UPI DATA
+# ------------------------------------------------------
 def generate_upi_transactions(n=25):
 
     banks = ["SBI", "HDFC", "ICICI", "Axis", "PNB"]
@@ -38,36 +40,48 @@ def generate_upi_transactions(n=25):
     return df
 
 
-# ------------------- UPI RISK RULES -------------------
-
+# ------------------------------------------------------
+# APPLY UPI RISK RULES
+# ------------------------------------------------------
 def apply_upi_risk_engine(df):
 
     df["datetime"] = pd.to_datetime(df["datetime"])
     df["risk_score"] = 0
 
+    # High amount
     df.loc[df["amount"] > 15000, "risk_score"] += 40
 
+    # Late night
     df.loc[df["datetime"].dt.hour.isin([0,1,2,3,4]), "risk_score"] += 20
 
+    # High P2P transfer
     df.loc[
         (df["txn_type"] == "P2P") &
         (df["amount"] > 10000),
         "risk_score"
     ] += 25
+
+    # Repeated sender
     sender_counts = df["sender_vpa"].value_counts()
     repeated_users = sender_counts[sender_counts >= 4].index
     df.loc[df["sender_vpa"].isin(repeated_users), "risk_score"] += 15
+
+    # Final fraud flag
     df["fraud_flag"] = df["risk_score"].apply(lambda x: 1 if x >= 50 else 0)
 
     return df
 
 
-# ---------------- DATA SOURCE SELECTION ---------------------
+# ------------------------------------------------------
+# DATA SOURCE SELECTION
+# ------------------------------------------------------
 option = st.radio("Choose Data Source", ["Generate Random UPI Data", "Upload CSV File"])
 
 df = None
 
-# ----------------- GENERATE ------------------------
+# ------------------------------------------------------
+# OPTION 1: GENERATE
+# ------------------------------------------------------
 if option == "Generate Random UPI Data":
 
     if st.button("Generate Transactions"):
@@ -75,8 +89,9 @@ if option == "Generate Random UPI Data":
         df = apply_upi_risk_engine(df)
         st.success("Random UPI dataset generated.")
 
-# ---------------- UPLOAD ---------------------
-
+# ------------------------------------------------------
+# OPTION 2: UPLOAD
+# ------------------------------------------------------
 elif option == "Upload CSV File":
 
     uploaded_file = st.file_uploader("Upload UPI CSV file", type=["csv"])
@@ -87,7 +102,9 @@ elif option == "Upload CSV File":
         st.success("File uploaded and processed.")
 
 
-# -------------- DISPLAY DATA IF AVAILABLE --------------
+# ------------------------------------------------------
+# DISPLAY DATA IF AVAILABLE
+# ------------------------------------------------------
 if df is not None:
 
     st.subheader("📄 UPI Transactions")
@@ -122,7 +139,7 @@ if df is not None:
     st.info("""
     Risk Rules:
     • Amount > ₹15000 → +40  
-    • 12AM-4AM → +20  
+    • 12AM–4AM → +20  
     • P2P > ₹10000 → +25  
     • Same sender ≥ 4 → +15  
     Fraud if risk_score ≥ 50
